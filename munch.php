@@ -243,6 +243,7 @@ if(in_array("packets", $toppings, true) !== false){
 					case "writestring":
 						$f = "string8";
 						break;
+					case "ulong long":
 					case "raknetguid>":
 						$f = "GUID";
 						break;
