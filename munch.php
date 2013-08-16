@@ -186,27 +186,31 @@ if(in_array("packets", $toppings, true) !== false){
 		foreach($networkFunctions as $pid => $data){
 			info("[*] Getting ".$data[2]." structure...", "");
 			$things = findPREG($classindex[$data[2]."::write"], '/BL {1,}[a-zA-Z0-9_]* {1,}; {1,}.*\:\:([A-Za-z0-9_\<\> ]*)\(/', true);
-			$bits = findPREG($classindex[$data[2]."::write"], '/(MOVS|MOV\.W) {1,}R[2]\, {1,}\#([x0-9A-F]{1,4})/', true);
+			$bits = findPREG($classindex[$data[2]."::write"], '/(MOVS|MOV\.W) {1,}R[2]\, {1,}#([x0-9A-F]{1,4})/', true);
+			ksort($bits);
+			reset($things);
+			$key = key($things);
+			unset($things[$key]);
 			$funcs = array();
-			array_shift($things);
 			foreach($things as $line => $fn){
 				switch(strtolower($fn[1])){
 					case "writebits":
 						foreach($bits as $bline => $d){
-							if($bline >= $line){
+							if($bline > $line){
 								break;
 							}
+							$bdata = $d;
 						}
-						$f = "bits[".hexdec(str_replace("0x", "", $d[2]))."]";
+						$f = "bits[".hexdec(str_replace("0x", "", $bdata[2]))."]";
 						break;
 					case "write":
-						$f = "Data";
+						$f = "byte[]";
 						break;
 					case "write<uchar>":
-						$f = "ubyte";
+						$f = "byte";
 						break;
 					case "write<ushort>":
-						$f = "ushort";
+						$f = "short";
 						break;
 					case "write<short>":
 						$f = "short";
@@ -233,7 +237,7 @@ if(in_array("packets", $toppings, true) !== false){
 						break;
 					case "serialize":
 					case "writestring":
-						$f = "String";
+						$f = "string8";
 						break;
 					case "raknetguid>":
 						$f = "GUID";
@@ -276,6 +280,7 @@ if(in_array("version", $toppings, true) !== false){
 }
 
 if(in_array("packets", $toppings, true) !== false){
+	ksort($networkFunctions);
 	$packets = array("info" => array(
 		"count" => count($networkFunctions),
 	), "packet" => array());
@@ -287,14 +292,26 @@ if(in_array("packets", $toppings, true) !== false){
 			"from_server" => ($packet[1] & 0x02) > 0 ? true:false,
 		);
 		if(in_array("packetinstructions", $toppings, true)){
-			$packets["packet"][$packet[0]]["instructions"] = array();
+			$packets["packet"][$packet[0]]["instructions"] = array(
+				array(
+					"operation" => "Packet: ".$packet[2],
+				)
+			);
 			$cnt = 0;
 			foreach($packet[3] as $instruction){
-				$instructions = array(
-					"field" => chr(0x61 + $cnt),
-					"operation" => "write",
-					"type" => $instruction,
-				);
+				if(substr($instruction, 0, 4) === "bits" or $instruction === "Metadata" or $instruction === "Item" or $instruction === "GUID"){
+					$instructions = array(
+						"field" => $instruction."(".chr(0x61 + $cnt).")",
+						"operation" => "write",
+						"type" => "byte[]",
+					);
+				}else{
+					$instructions = array(
+						"field" => chr(0x61 + $cnt),
+						"operation" => "write",
+						"type" => $instruction,
+					);
+				}
 				$packets["packet"][$packet[0]]["instructions"][] = $instructions;
 				++$cnt;
 			}
