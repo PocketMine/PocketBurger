@@ -197,6 +197,7 @@ if(in_array("packets", $toppings, true) !== false){
 			unset($things[$key]);
 			$funcs = array();
 			foreach($things as $line => $fn){
+				$t = 0;
 				switch(strtolower($fn[1])){
 					case "writebits":
 						foreach($bits as $bline => $d){
@@ -210,12 +211,7 @@ if(in_array("packets", $toppings, true) !== false){
 					case "write":
 						$f = "byte[]";
 						break;
-					case "write<uchar>":
-						$f = "byte";
-						break;
 					case "write<ushort>":
-						$f = "short";
-						break;
 					case "write<short>":
 						$f = "short";
 						break;
@@ -226,8 +222,11 @@ if(in_array("packets", $toppings, true) !== false){
 						$f = "float";
 						break;
 					case "write<long>":
+					case "write<ulong long>":
+					case "raknetguid>":
 						$f = "long";
 						break;
+					case "write<uchar>":
 					case "write<char>":
 					case "write<signed char>":
 						$f = "byte";
@@ -243,18 +242,26 @@ if(in_array("packets", $toppings, true) !== false){
 					case "writestring":
 						$f = "string8";
 						break;
-					case "ulong long":
-					case "raknetguid>":
-						$f = "GUID";
+					case "doendianswap":
+						$f = "doEndianSwap()";
+						$t = 1;
+						break;
+					case "reversebytes":
+						$f = "reverseBytes()";
+						$t = 1;
+						break;
+					case "rot_degreestochar":
+						$f = "degreesToChar()";
+						$t = 1;
+						break;
+					case "clamp":
+						$f = "clamp()";
+						$t = 1;
 						break;
 					case "isnetworkorder":
 					case "isnetworkorderinternal":
 					case "rakstring":
-					case "reset":
-					case "reversebytes":
-					case "doendianswap":
-					case "clamp":
-					case "rot_degreestochar":
+					case "reset":					
 					case "nonvariadic":
 					default:
 						$f = false;
@@ -263,9 +270,9 @@ if(in_array("packets", $toppings, true) !== false){
 				if($f === false){
 					continue;
 				}
-				$funcs[] = $f;
+				$funcs[] = array($t, $f);
 			}
-			if($funcs[count($funcs) - 1] === "Data"){
+			if($funcs[count($funcs) - 1] === "byte[]"){
 				array_pop($funcs);
 			}
 			$networkFunctions[$pid][3] = $funcs;
@@ -305,22 +312,29 @@ if(in_array("packets", $toppings, true) !== false){
 				)
 			);
 			$cnt = 0;
+			$next = false;
 			foreach($packet[3] as $instruction){
-				if(substr($instruction, 0, 4) === "bits" or $instruction === "Metadata" or $instruction === "Item" or $instruction === "GUID"){
-					$instructions = array(
-						"field" => $instruction."(".chr(0x61 + $cnt).")",
-						"operation" => "write",
-						"type" => "byte[]",
-					);
-				}else{
-					$instructions = array(
-						"field" => chr(0x61 + $cnt),
-						"operation" => "write",
-						"type" => $instruction,
-					);
+				if($instruction[0] === 0){
+					if(substr($instruction[1], 0, 4) === "bits" or $instruction[1] === "Metadata" or $instruction[1] === "Item"){
+						$instructions = array(
+							"field" => $instruction[1]."(".chr(0x61 + $cnt).")".($next !== false ? ".".$next:""),
+							"operation" => "write",
+							"type" => "byte[]",
+						);
+					}else{
+						$instructions = array(
+							"field" => chr(0x61 + $cnt).($next !== false ? ".".$next:""),
+							"operation" => "write",
+							"type" => $instruction[1],
+						);
+					}
+					++$cnt;
+					$next = false;
+				}elseif($instruction[0] === 1){ //Applied function
+					$next = $instruction[1];
 				}
 				$packets["packet"][$packet[0]]["instructions"][] = $instructions;
-				++$cnt;
+				
 			}
 		}
 	}
