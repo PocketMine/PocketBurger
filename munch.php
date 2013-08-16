@@ -188,7 +188,6 @@ if(in_array("packets", $toppings, true) !== false){
 			$things = findPREG($classindex[$data[2]."::write"], '/BL {1,}[a-zA-Z0-9_]* {1,}; {1,}.*\:\:([A-Za-z0-9_\<\> ]*)\(/', true);
 			$bits = findPREG($classindex[$data[2]."::write"], '/(MOVS|MOV\.W) {1,}R[2]\, {1,}\#([x0-9A-F]{1,4})/', true);
 			$funcs = array();
-			array_pop($things);
 			array_shift($things);
 			foreach($things as $line => $fn){
 				switch(strtolower($fn[1])){
@@ -255,6 +254,9 @@ if(in_array("packets", $toppings, true) !== false){
 				}
 				$funcs[] = $f;
 			}
+			if($funcs[count($funcs) - 1] === "Data"){
+				array_pop($funcs);
+			}
 			$networkFunctions[$pid][3] = $funcs;
 			info(" found ".count($funcs)." field(s)");	
 		}
@@ -293,7 +295,7 @@ if(in_array("packets", $toppings, true) !== false){
 					"operation" => "write",
 					"type" => $instruction,
 				);
-				$packets["packet"][$packet[0]]["instructions"][] = $instruction;
+				$packets["packet"][$packet[0]]["instructions"][] = $instructions;
 				++$cnt;
 			}
 		}
@@ -302,7 +304,7 @@ if(in_array("packets", $toppings, true) !== false){
 }
 
 
-$output = json_encode($data, JSON_PRETTY_PRINT);
+$output = json_encode(array($data), JSON_PRETTY_PRINT);
 
 if(getp("o", "output") !== null){
 	file_put_contents(getp("o", "output"), $output);
