@@ -77,12 +77,17 @@ $classindex = array();
 $classes = array();
 $variables = array();
 $fn = false;
-info("[*] More parsing...");
+$methodscount = 0;
+info("\r[*] More parsing... found $methodscount methods and ".count($variables)." strings", "");
 for(;$line < $cnt;++$line){
 	$l = str_replace("\t", " ", $asm[$line]);
+	if(strpos($l, "AREA .data, DATA") !== false){
+		break;
+	}
 	unset($asm[$line]);
 	if(preg_match('#^([A-Za-z0-9_]{1,}) {1,}DCB "(.{1,})",0#', $l, $matches) > 0){
 		$variables[$matches[1]] = $matches[2];
+		info("\r[*] More parsing... found $methodscount methods and ".count($variables)." strings", "");
 	}elseif($fn === false){
 		if($l === "; =============== S U B R O U T I N E ======================================="){
 			$fn = true;
@@ -112,6 +117,8 @@ for(;$line < $cnt;++$line){
 		}else{
 			if($l !== "" and substr($l, 0, 17) === "; End of function"){
 				$classindex[$fn[0]."::".$fn[1]] =& $classes[$fn[0]][$fn[1]];
+				++$methodscount;
+				info("\r[*] More parsing... found $methodscount methods and ".count($variables)." strings", "");
 				$fn = false;
 			}else{
 				$classes[$fn[0]][$fn[1]][$fn[2]][2][] = trim($l);
@@ -119,7 +126,10 @@ for(;$line < $cnt;++$line){
 		}
 	}
 }
-info("[+] done!");
+info("\r[*] More parsing... found $methodscount methods and ".count($variables)." strings", "");
+
+
+info(PHP_EOL. "[+] done!");
 
 
 if(($topp = getp("t", "toppings")) !== null){
