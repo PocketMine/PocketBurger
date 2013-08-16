@@ -254,6 +254,8 @@ if(in_array("packets", $toppings, true) !== false){
 					case "doendianswap":
 					case "clamp":
 					case "rot_degreestochar":
+					case "nonvariadic":
+					default:
 						$f = false;
 						break;
 				}
