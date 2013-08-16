@@ -89,7 +89,7 @@ for(;$line < $cnt;++$line){
 		}
 	}else{
 		if($fn === true){
-			if($l !== "" and preg_match('#; ([A-Za-z0-9_\:\~]{1,})\(([A-Za-z0-9_\:\~, \*\&]*)\)#', $l, $matches) > 0){
+			if($l !== "" and preg_match('#^; ([A-Za-z0-9_\:\~]{1,})\(([A-Za-z0-9_\:\~, \*\&]*)\)#', $l, $matches) > 0){
 				$method = explode("::", $matches[1]);
 				$class = array_shift($method);
 				$method = implode("::", $method);
