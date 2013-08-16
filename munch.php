@@ -8,6 +8,7 @@ $toppings = array(
 	"version" => "Provides the protocol and release version.",
 	"packets" => "Provides minimal information on all network packets.",
 	"packetinstructions" => "Provides the instructions used to construct network packets.",
+	"biomes" => "Gets most biome types.",
 );
 
 if(getp("l", "list") !== null){
@@ -135,7 +136,7 @@ info(PHP_EOL. "[+] done!");
 if(($topp = getp("t", "toppings")) !== null){
 	$toppings = explode(",", strtolower(str_replace(" ", "", $topp)));
 }else{
-	$toppings = array("version", "packets", "packetinstructions");
+	$toppings = array("version", "packets", "packetinstructions","biomes");
 }
 
 if(in_array("packetinstructions", $toppings, true) !== false and in_array("packets", $toppings, true) === false){
@@ -157,6 +158,27 @@ if(in_array("version", $toppings, true) !== false){
 	$protocol = findPREG($classindex["ClientSideNetworkHandler::onConnect"], '/MOVS {1,}R[1-9], #([0-9A-Fx]{1,})/');
 	$protocol = substr($protocol[0][1], 0, 2) == "0x" ? hexdec($protocol[0][1]):intval($protocol[0][1]);
 	info("[+] Protocol #$protocol");
+}
+
+if(in_array("biomes", $toppings, true) !== false){
+	info("[*] Getting biomes...", "");
+	$biomenames = findPREG($classindex["Biome::initBiomes"], '/LDR {1,}R1, {1,}=\(([A-Za-z0-9_]*) {1,}\-/', true);
+	$biomecolors = findPREG($classindex["Biome::initBiomes"], '/LDR {1,}R1, {1,}=(0x[A-F0-9]*)/', true);
+	$biomes = array();
+	foreach($biomenames as $line => $d){
+		$color = "000000";
+		foreach($biomecolors as $cline => $c){
+			if($cline > $line){
+				break;
+			}
+			$color = $c;
+		}
+		$biomes[$variables[$d[1]]] = array(
+			"name" => $variables[$d[1]],
+			"color" => hexdec($color),
+		);
+	}
+	info(" done");
 }
 
 if(in_array("packets", $toppings, true) !== false){
@@ -350,6 +372,10 @@ if(in_array("packets", $toppings, true) !== false){
 		}
 	}
 	$data["packets"] = $packets;
+}
+
+if(in_array("biomes", $toppings, true) !== false){
+	$data["biomes"] = $biomes;
 }
 
 
