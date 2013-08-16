@@ -184,6 +184,21 @@ if(in_array("biomes", $toppings, true) !== false){
 }
 
 if(in_array("blocks", $toppings, true) !== false){
+	$btextures = array(
+		1 => array(1, 0),
+		2 => array(3, 0),
+		3 => array(2, 0),
+		4 => array(0, 1),
+		5 => array(4, 0),
+		
+		7 => array(1, 1),
+		
+		12 => array(2, 1),
+		13 => array(3, 1),
+		14 => array(0, 2),
+		15 => array(1, 2),
+		16 => array(2, 2),
+	);
 	info("[*] Getting blocks...", "");
 	$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD {1,}R1, {1,}PC {1,}; "([A-Za-z]*)"/', true);
 	$blockstrings = findPREG($classindex["Tile::initTiles"], '/LDR {1,}R1, {1,}=\(([A-Za-z0-9_]*) {1,}\-/', true);
@@ -219,6 +234,9 @@ if(in_array("blocks", $toppings, true) !== false){
 				"id" => $id,
 				"display_name" => $string,
 			);
+			if(isset($btextures[$id])){
+				$blocks[$id]["texture"] = array("x" => $btextures[$id][0], "y" => $btextures[$id][1]);
+			}
 		}
 	}
 	info(" found ".count($blocks));
