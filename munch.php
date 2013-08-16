@@ -9,6 +9,7 @@ $toppings = array(
 	"packets" => "Provides minimal information on all network packets.",
 	"packetinstructions" => "Provides the instructions used to construct network packets.",
 	"biomes" => "Gets most biome types.",
+	"blocks" => "Gets most available block types.",
 );
 
 if(getp("l", "list") !== null){
@@ -131,12 +132,13 @@ info("\r[*] More parsing... found $methodscount methods and ".count($variables).
 
 
 info(PHP_EOL. "[+] done!");
+unset($asm);
 
 
 if(($topp = getp("t", "toppings")) !== null){
 	$toppings = explode(",", strtolower(str_replace(" ", "", $topp)));
 }else{
-	$toppings = array("version", "packets", "packetinstructions","biomes");
+	$toppings = array("version", "packets", "packetinstructions","biomes","blocks");
 }
 
 if(in_array("packetinstructions", $toppings, true) !== false and in_array("packets", $toppings, true) === false){
@@ -178,7 +180,48 @@ if(in_array("biomes", $toppings, true) !== false){
 			"color" => hexdec($color),
 		);
 	}
-	info(" done");
+	info(" found ".count($biomes));
+}
+
+if(in_array("blocks", $toppings, true) !== false){
+	info("[*] Getting blocks...", "");
+	$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD {1,}R1, {1,}PC {1,}; "([A-Za-z]*)"/', true);
+	$blockstrings = findPREG($classindex["Tile::initTiles"], '/LDR {1,}R1, {1,}=\(([A-Za-z0-9_]*) {1,}\-/', true);
+	$blockids = findPREG($classindex["Tile::initTiles"], '/(MOVS|MOV\.W) {1,}R1, {1,}#([xA-F0-9]*)/', true);
+	$blockclasses = findPREG($classindex["Tile::initTiles"], '/BL {1,}[a-zA-Z0-9_]* {1,}; {1,}(.*|)Tile::(.*|)Tile\(/', true);
+	$blocks = array();
+	ksort($blocknames);
+	ksort($blockids);
+	ksort($blockclasses);
+	ksort($blockstrings);
+	foreach($blocknames as $line => $d){
+		foreach($blockclasses as $cline => $c){
+			if($cline > $line){
+				break;
+			}
+			$classl = $cline;
+		}		
+		foreach($blockids as $iline => $i){
+			if($iline > $classl){
+				break;
+			}
+			$id = hexdec(str_replace("0x", "", $i[2]));
+		}
+		foreach($blockstrings as $sline => $s){
+			if($sline > $line){
+				break;
+			}
+			$string = $variables[$s[1]];
+		}
+		if(!isset($blocks[$id])){
+			$blocks[$id] = array(
+				"name" => $d[1],
+				"id" => $id,
+				"display_name" => $string,
+			);
+		}
+	}
+	info(" found ".count($blocks));
 }
 
 if(in_array("packets", $toppings, true) !== false){
@@ -376,6 +419,17 @@ if(in_array("packets", $toppings, true) !== false){
 
 if(in_array("biomes", $toppings, true) !== false){
 	$data["biomes"] = $biomes;
+}
+
+
+if(in_array("blocks", $toppings, true) !== false){
+	$data["blocks"] = array(
+		"info" => array(
+			"count" => count($blocks),
+			"real_count" => count($blocks),
+		),
+		"block" => $blocks,
+	);
 }
 
 
