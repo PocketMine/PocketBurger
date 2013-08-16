@@ -165,7 +165,7 @@ if(in_array("version", $toppings, true) !== false){
 
 if(in_array("sounds", $toppings, true) !== false){
 	info("[*] Getting sounds...", "");
-	$soundnames = findPREG($classindex["SoundEngine::init"], '/ADD {1,}R[0-9]{1,}, {1,}PC {1,}; {1,}([A-Za-z0-9_\.]*)/', true);
+	$soundnames = findPREG($classindex["SoundEngine::init"], '/ADD {1,}R[0-9]{1,}, {1,}PC {1,}; {1,}"([A-Za-z0-9_\.]*)"/', true);
 	$sounds = array();
 	foreach($soundnames as $line => $d){
 		$sounds[$d[1]] = array(
