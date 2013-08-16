@@ -10,6 +10,7 @@ $toppings = array(
 	"packetinstructions" => "Provides the instructions used to construct network packets.",
 	"biomes" => "Gets most biome types.",
 	"blocks" => "Gets most available block types.",
+	"sounds" => "Finds all named sound effects.",
 );
 
 if(getp("l", "list") !== null){
@@ -138,7 +139,7 @@ unset($asm);
 if(($topp = getp("t", "toppings")) !== null){
 	$toppings = explode(",", strtolower(str_replace(" ", "", $topp)));
 }else{
-	$toppings = array("version", "packets", "packetinstructions","biomes","blocks");
+	$toppings = array("version", "packets", "packetinstructions","biomes","blocks","sounds");
 }
 
 if(in_array("packetinstructions", $toppings, true) !== false and in_array("packets", $toppings, true) === false){
@@ -160,6 +161,19 @@ if(in_array("version", $toppings, true) !== false){
 	$protocol = findPREG($classindex["ClientSideNetworkHandler::onConnect"], '/MOVS {1,}R[1-9], #([0-9A-Fx]{1,})/');
 	$protocol = substr($protocol[0][1], 0, 2) == "0x" ? hexdec($protocol[0][1]):intval($protocol[0][1]);
 	info("[+] Protocol #$protocol");
+}
+
+if(in_array("sounds", $toppings, true) !== false){
+	info("[*] Getting sounds...", "");
+	$soundnames = findPREG($classindex["SoundEngine::init"], '/ADD {1,}R[0-9]{1,}, {1,}PC {1,}; {1,}([A-Za-z0-9_\.]*)/', true);
+	$sounds = array();
+	foreach($soundnames as $line => $d){
+		$sounds[$d[1]] = array(
+			"name" => $d[1],
+			"versions" => array(),
+		);
+	}
+	info(" found ".count($sounds));
 }
 
 if(in_array("biomes", $toppings, true) !== false){
@@ -198,6 +212,18 @@ if(in_array("blocks", $toppings, true) !== false){
 		14 => array(0, 2),
 		15 => array(1, 2),
 		16 => array(2, 2),
+		17 => array(4, 1),
+		18 => array(4, 3),
+		
+		21 => array(0, 10),
+		22 => array(0, 9),
+		
+		24 => array(0, 12),
+		
+		26 => array(7, 9),
+		
+		30 => array(11, 0),
+		35 => array(0, 4),
 	);
 	info("[*] Getting blocks...", "");
 	$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD {1,}R1, {1,}PC {1,}; "([A-Za-z]*)"/', true);
@@ -438,6 +464,11 @@ if(in_array("packets", $toppings, true) !== false){
 if(in_array("biomes", $toppings, true) !== false){
 	$data["biomes"] = $biomes;
 }
+
+if(in_array("sounds", $toppings, true) !== false){
+	$data["sounds"] = $sounds;
+}
+
 
 
 if(in_array("blocks", $toppings, true) !== false){
