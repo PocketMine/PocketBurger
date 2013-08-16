@@ -134,13 +134,17 @@ if(in_array("packetinstructions", $toppings, true) !== false and in_array("packe
 
 
 if(in_array("version", $toppings, true) !== false){
-	// 0.7.3+ compatible
+	// 0.7.0+ compatible
 	$vVars = findPREG($classindex["Common::getGameVersionString"], '#MOVS {1,}R[0-9], \#([0-9]{1})#');
-	$version = $vVars[0][1].".".$vVars[2][1].".".$vVars[1][1];
+	if(!isset($vVars[2])){
+		$vVars[2] = array(1 => $vVars[1][1]);
+		$vVars[1][1] = "0";
+	}
+	$version = $vVars[0][1].".".@intval($vVars[2][1]).".".$vVars[1][1];
 	info("[+] Minecraft: Pocket Edition v$version");
 
 
-	$protocol = findPREG($classindex["ClientSideNetworkHandler::onConnect"], '/MOVS {1,}R[0-9], #([0-9A-Fx]{1,})/');
+	$protocol = findPREG($classindex["ClientSideNetworkHandler::onConnect"], '/MOVS {1,}R[1-9], #([0-9A-Fx]{1,})/');
 	$protocol = substr($protocol[0][1], 0, 2) == "0x" ? hexdec($protocol[0][1]):intval($protocol[0][1]);
 	info("[+] Protocol #$protocol");
 }
