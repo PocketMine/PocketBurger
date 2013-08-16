@@ -272,7 +272,7 @@ if(in_array("packets", $toppings, true) !== false){
 				}
 				$funcs[] = array($t, $f);
 			}
-			if($funcs[count($funcs) - 1][1] === "byte[]"){
+			if(count($funcs) > 1 and $funcs[count($funcs) - 1][1] === "byte[]"){
 				array_pop($funcs);
 			}
 			$networkFunctions[$pid][3] = $funcs;
@@ -330,10 +330,11 @@ if(in_array("packets", $toppings, true) !== false){
 					}
 					++$cnt;
 					$next = false;
+					$packets["packet"][$packet[0]]["instructions"][] = $instructions;
 				}elseif($instruction[0] === 1){ //Applied function
 					$next = $instruction[1];
 				}
-				$packets["packet"][$packet[0]]["instructions"][] = $instructions;
+				
 				
 			}
 		}
