@@ -272,7 +272,7 @@ if(in_array("packets", $toppings, true) !== false){
 				}
 				$funcs[] = array($t, $f);
 			}
-			if($funcs[count($funcs) - 1] === "byte[]"){
+			if($funcs[count($funcs) - 1][1] === "byte[]"){
 				array_pop($funcs);
 			}
 			$networkFunctions[$pid][3] = $funcs;
