@@ -171,7 +171,7 @@ if(in_array("biomes", $toppings, true) !== false){
 			if($cline > $line){
 				break;
 			}
-			$color = $c;
+			$color = $c[1];
 		}
 		$biomes[$variables[$d[1]]] = array(
 			"name" => $variables[$d[1]],
