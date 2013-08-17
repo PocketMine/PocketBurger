@@ -38,7 +38,7 @@ if($asm === false){
 	exit(-1);
 }
 info("[*] Splitting lines...","");
-$asm = explode("\n", str_replace("\r", "", $asm));
+$asm = explode("\n", str_replace(array("\r", "\t", "   ", "  "), array("", " ", " ", " "), $asm));
 $header = false;
 $cnt = count($asm);
 $line = 0;
@@ -83,12 +83,12 @@ $fn = false;
 $methodscount = 0;
 info("\r[*] More parsing... found $methodscount methods and ".count($variables)." strings", "");
 for(;$line < $cnt;++$line){
-	$l = str_replace("\t", " ", $asm[$line]);
+	$l = $asm[$line];
 	if(strpos($l, "AREA .data, DATA") !== false){
 		break;
 	}
 	unset($asm[$line]);
-	if(preg_match('#^([A-Za-z0-9_]{1,}) {1,}DCB "(.{1,})",0#', $l, $matches) > 0){
+	if(preg_match('#^([A-Za-z0-9_]{1,}) DCB "(.{1,})",0#', $l, $matches) > 0){
 		$variables[$matches[1]] = $matches[2];
 		info("\r[*] More parsing... found $methodscount methods and ".count($variables)." strings", "");
 	}elseif($fn === false){
@@ -158,9 +158,9 @@ if(in_array("version", $toppings, true) !== false){
 	}
 	if(trim($version) == ""){ //Different methods to get version
 		// 0.7.3+ compatible method
-		$vVars = findPREG($classindex["Common::getGameVersionString"], '#MOVS {1,}R[0-9], \#([0-9]{1})#');
+		$vVars = findPREG($classindex["Common::getGameVersionString"], '#MOVS R[0-9], \#([0-9]{1})#');
 		if(!isset($vVars[2])){ //0.6.1+ method 
-			$vVars = findPREG($classindex["Common::getGameVersionString"], '#ADD {1,}R[0-9], {1,}PC {1,}; {1,}"([ a-zA-Z0-9\.]*)"#');
+			$vVars = findPREG($classindex["Common::getGameVersionString"], '#ADD R[0-9], PC ; "([ a-zA-Z0-9\.]*)"#');
 			$version = $vVars[0][1];
 		}else{
 			$version = "v".$vVars[0][1].".".@intval($vVars[2][1]).".".$vVars[1][1];
@@ -169,14 +169,14 @@ if(in_array("version", $toppings, true) !== false){
 	info("[+] Minecraft: Pocket Edition $version");
 	
 
-	$protocol = findPREG($classindex["ClientSideNetworkHandler::onConnect"], '/MOVS {1,}R[1-9], #([0-9A-Fx]{1,})/');
+	$protocol = findPREG($classindex["ClientSideNetworkHandler::onConnect"], '/MOVS R[1-9], #([0-9A-Fx]{1,})/');
 	$protocol = substr($protocol[0][1], 0, 2) == "0x" ? hexdec($protocol[0][1]):intval($protocol[0][1]);
 	info("[+] Protocol #$protocol");
 }
 
 if(in_array("sounds", $toppings, true) !== false){
 	info("[*] Getting sounds...", "");
-	$soundnames = findPREG($classindex["SoundEngine::init"], '/ADD {1,}R[0-9]{1,}, {1,}PC {1,}; {1,}"([A-Za-z0-9_\.]*)"/', true);
+	$soundnames = findPREG($classindex["SoundEngine::init"], '/ADD R[0-9]{1,}, PC ; "([A-Za-z0-9_\.]*)"/', true);
 	$sounds = array();
 	foreach($soundnames as $line => $d){
 		$sounds[$d[1]] = array(
@@ -189,8 +189,8 @@ if(in_array("sounds", $toppings, true) !== false){
 
 if(in_array("biomes", $toppings, true) !== false){
 	info("[*] Getting biomes...", "");
-	$biomenames = findPREG($classindex["Biome::initBiomes"], '/LDR {1,}R1, {1,}=\(([A-Za-z0-9_]*) {1,}\-/', true);
-	$biomecolors = findPREG($classindex["Biome::initBiomes"], '/LDR {1,}R1, {1,}=(0x[A-F0-9]*)/', true);
+	$biomenames = findPREG($classindex["Biome::initBiomes"], '/LDR R1, =\(([A-Za-z0-9_]*) \-/', true);
+	$biomecolors = findPREG($classindex["Biome::initBiomes"], '/LDR R1, =(0x[A-F0-9]*)/', true);
 	$biomes = array();
 	foreach($biomenames as $line => $d){
 		$color = "000000";
@@ -237,10 +237,10 @@ if(in_array("blocks", $toppings, true) !== false){
 		35 => array(0, 4),
 	);
 	info("[*] Getting blocks...", "");
-	$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD {1,}R1, {1,}PC {1,}; "([A-Za-z]*)"/', true);
-	$blockstrings = findPREG($classindex["Tile::initTiles"], '/LDR {1,}R1, {1,}=\(([A-Za-z0-9_]*) {1,}\-/', true);
-	$blockids = findPREG($classindex["Tile::initTiles"], '/(MOVS|MOV\.W) {1,}R1, {1,}#([xA-F0-9]*)/', true);
-	$blockclasses = findPREG($classindex["Tile::initTiles"], '/BL {1,}[a-zA-Z0-9_]* {1,}; {1,}(.*|)Tile::(.*|)Tile\(/', true);
+	$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD R1, PC ; "([A-Za-z]*)"/', true);
+	$blockstrings = findPREG($classindex["Tile::initTiles"], '/LDR R1, =\(([A-Za-z0-9_]*) \-/', true);
+	$blockids = findPREG($classindex["Tile::initTiles"], '/(MOVS|MOV\.W) R1, #([xA-F0-9]*)/', true);
+	$blockclasses = findPREG($classindex["Tile::initTiles"], '/BL [a-zA-Z0-9_]* ; (.*|)Tile::(.*|)Tile\(/', true);
 	$blocks = array();
 	ksort($blocknames);
 	ksort($blockids);
@@ -285,12 +285,12 @@ if(in_array("packets", $toppings, true) !== false){
 	$serverSide = array();
 	$clientSide = array();
 	foreach($classindex["ServerSideNetworkHandler::handle"] as $parameters => $class){
-		if(preg_match("#, {1,}([A-Za-z_]*)#", $parameters, $matches) > 0){
+		if(preg_match("#, ([A-Za-z_]*)#", $parameters, $matches) > 0){
 			$serverSide[$matches[1]] = true;
 		}
 	}
 	foreach($classindex["ClientSideNetworkHandler::handle"] as $parameters => $class){
-		if(preg_match("#, {1,}([A-Za-z_]*)#", $parameters, $matches) > 0){
+		if(preg_match("#, ([A-Za-z_]*)#", $parameters, $matches) > 0){
 			$clientSide[$matches[1]] = true;
 		}
 	}
@@ -309,7 +309,7 @@ if(in_array("packets", $toppings, true) !== false){
 				}else{
 					$dir = 0;
 				}
-				$pid = findPREG($fn, '/(MOVS|MOV\.W) {1,}(R[23456]|LR)\, {1,}\#0x([0-9A-F]{2})/');
+				$pid = findPREG($fn, '/(MOVS|MOV\.W) (R[23456]|LR)\, \#0x([0-9A-F]{2})/');
 				$pid = hexdec($pid[0][3]);
 				$networkFunctions[$pid] = array($pid, $dir, $n[0]);
 			}
@@ -319,8 +319,8 @@ if(in_array("packets", $toppings, true) !== false){
 	if(in_array("packetinstructions", $toppings, true) !== false){
 		foreach($networkFunctions as $pid => $data){
 			info("[*] Getting ".$data[2]." structure...", "");
-			$things = findPREG($classindex[$data[2]."::write"], '/BL {1,}[a-zA-Z0-9_]* {1,}; {1,}.*\:\:([A-Za-z0-9_\<\> ]*)\(/', true);
-			$bits = findPREG($classindex[$data[2]."::write"], '/(MOVS|MOV\.W) {1,}R[2]\, {1,}#([x0-9A-F]{1,4})/', true);
+			$things = findPREG($classindex[$data[2]."::write"], '/BL [a-zA-Z0-9_]* ; .*\:\:([A-Za-z0-9_\<\> ]*)\(/', true);
+			$bits = findPREG($classindex[$data[2]."::write"], '/(MOVS|MOV\.W) R[2]\, #([x0-9A-F]{1,4})/', true);
 			ksort($bits);
 			reset($things);
 			$key = key($things);
