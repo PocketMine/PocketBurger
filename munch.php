@@ -139,7 +139,7 @@ unset($asm);
 if(($topp = getp("t", "toppings")) !== null){
 	$toppings = explode(",", strtolower(str_replace(" ", "", $topp)));
 }else{
-	$toppings = array("version", "packets", "packetinstructions","biomes","blocks","sounds");
+	$toppings = array("version", "packets", "packetinstructions", "biomes", "blocks", "sounds");
 }
 
 if(in_array("packetinstructions", $toppings, true) !== false and in_array("packets", $toppings, true) === false){
@@ -148,15 +148,26 @@ if(in_array("packetinstructions", $toppings, true) !== false and in_array("packe
 
 
 if(in_array("version", $toppings, true) !== false){
-	// 0.7.0+ compatible
-	$vVars = findPREG($classindex["Common::getGameVersionString"], '#MOVS {1,}R[0-9], \#([0-9]{1})#');
-	if(!isset($vVars[2])){
-		$vVars[2] = array(1 => $vVars[1][1]);
-		$vVars[1][1] = "0";
+	//get version directly, for older versions
+	$version = "";
+	foreach($variables as $index => $value){
+		if(preg_match('#aV[0-9]_[0-9]_[0-9]#', $index) > 0){
+			$version = $value;
+			break;
+		}
 	}
-	$version = $vVars[0][1].".".@intval($vVars[2][1]).".".$vVars[1][1];
-	info("[+] Minecraft: Pocket Edition v$version");
-
+	if(trim($version) == ""){ //Different methods to get version
+		// 0.7.3+ compatible method
+		$vVars = findPREG($classindex["Common::getGameVersionString"], '#MOVS {1,}R[0-9], \#([0-9]{1})#');
+		if(!isset($vVars[2])){ //0.6.1+ method 
+			$vVars = findPREG($classindex["Common::getGameVersionString"], '#ADD {1,}R[0-9], {1,}PC {1,}; {1,}"([ a-zA-Z0-9\.]*)"#');
+			$version = $vVars[0][1];
+		}else{
+			$version = "v".$vVars[0][1].".".@intval($vVars[2][1]).".".$vVars[1][1];
+		}
+	}
+	info("[+] Minecraft: Pocket Edition $version");
+	
 
 	$protocol = findPREG($classindex["ClientSideNetworkHandler::onConnect"], '/MOVS {1,}R[1-9], #([0-9A-Fx]{1,})/');
 	$protocol = substr($protocol[0][1], 0, 2) == "0x" ? hexdec($protocol[0][1]):intval($protocol[0][1]);
