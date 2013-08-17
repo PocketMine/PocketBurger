@@ -7,7 +7,7 @@ It needs an ASM output using IDA from the libminecraftpe.so from the Android APK
 
 ### Usage
 
-`php munch.php libminecraftpe.asm [options]`
+`php munch.php [options] libminecraftpe.asm`
 
 Options: [Check Burger](https://github.com/mcdevs/Burger/). No --download or -d
 
