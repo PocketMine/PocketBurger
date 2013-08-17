@@ -434,13 +434,10 @@ if(in_array("packets", $toppings, true) !== false){
 			"id" => $packet[0],
 			"from_client" => ($packet[1] & 0x01) > 0 ? true:false,
 			"from_server" => ($packet[1] & 0x02) > 0 ? true:false,
+			"name" => $packet[2],
 		);
 		if(in_array("packetinstructions", $toppings, true)){
-			$packets["packet"][$packet[0]]["instructions"] = array(
-				array(
-					"operation" => "Packet: ".$packet[2],
-				)
-			);
+			$packets["packet"][$packet[0]]["instructions"] = array();
 			$cnt = 0;
 			$next = false;
 			foreach($packet[3] as $instruction){
