@@ -342,6 +342,8 @@ if(in_array("packets", $toppings, true) !== false){
 						$f = "byte[]";
 						break;
 					case "write<ushort>":
+						$f = "ushort";
+						break;
 					case "write<short>":
 						$f = "short";
 						break;
@@ -352,11 +354,15 @@ if(in_array("packets", $toppings, true) !== false){
 						$f = "float";
 						break;
 					case "write<long>":
-					case "write<ulong long>":
-					case "raknetguid>":
 						$f = "long";
 						break;
+					case "write<ulong long>":
+					case "raknetguid>":
+						$f = "ulong";
+						break;					
 					case "write<uchar>":
+						$f = "ubyte";
+						break;
 					case "write<char>":
 					case "write<signed char>":
 						$f = "byte";
@@ -449,8 +455,14 @@ if(in_array("packets", $toppings, true) !== false){
 							"type" => "byte[]",
 						);
 					}else{
+						if($instruction[1]{0} === "u"){
+							$instruction[1] = substr($instruction[1], 1);
+							$more = "(unsigned) ";
+						}else{
+							$more = "";
+						}
 						$instructions = array(
-							"field" => chr(0x61 + $cnt).($next !== false ? ".".$next:""),
+							"field" => $more.chr(0x61 + $cnt).($next !== false ? ".".$next:""),
 							"operation" => "write",
 							"type" => $instruction[1],
 						);
