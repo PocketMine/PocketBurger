@@ -2,7 +2,7 @@
 
 PocketBurger is a "port" of Burger (in fact, just a fast-coded program that works like it) used to extract information from Minecraft: Pocket Edition releases.
 
-It needs an ASM output using IDA from the libminecraftpe.so from the Android APK.
+It needs an ASM output using IDA on the libminecraftpe.so from the Android APK.
 
 
 ### Usage
