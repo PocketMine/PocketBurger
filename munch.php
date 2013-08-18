@@ -244,7 +244,7 @@ if(in_array("blocks", $toppings, true) !== false){
 	$blockstrings = findPREG($classindex["Tile::initTiles"], '/LDR R1, =\(([A-Za-z0-9_]*) \-/', true);
 	$blockids = findPREG($classindex["Tile::initTiles"], '/(MOVS|MOV\.W) R1, #([xA-F0-9]*)/', true);
 	$blockhardness = findPREG($classindex["Tile::initTiles"], '/(LDR|MOV\.W) R1, (#|=)([xA-F0-9]{5,})/', true);
-	$blockclasses = findPREG($classindex["Tile::initTiles"], '/BL [a-zA-Z0-9_]* ; (.*|)Tile(.*|)::(.*|)Tile(.*|)\(/', true);
+	$blockclasses = findPREG($classindex["Tile::initTiles"], '/BL [a-zA-Z0-9_]* ; ([A-Za-z0-9_]*)::\g{1}\(int/', true);
 	$blocks = array();
 	foreach($blocknames as $line => $d){
 		foreach($blockclasses as $cline => $c){
