@@ -292,6 +292,8 @@ if(in_array("blocks", $toppings, true) !== false){
 			if(isset($btextures[$id])){
 				$blocks[$id]["texture"] = array("x" => $btextures[$id][0], "y" => $btextures[$id][1]);
 			}
+		}else{
+			info(" !".$id.":".$d[1]."[".$string."]", "");
 		}
 	}
 	info(" found ".count($blocks));
