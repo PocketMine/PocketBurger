@@ -194,7 +194,6 @@ if(in_array("biomes", $toppings, true) !== false){
 	$biomenames = findPREG($classindex["Biome::initBiomes"], '/LDR R1, =\(([A-Za-z0-9_]*) \-/', true);
 	$biomecolors = findPREG($classindex["Biome::initBiomes"], '/LDR R1, =(0x[A-F0-9]*)/', true);
 	$biomes = array();
-	$cnt = 0;
 	foreach($biomenames as $line => $d){
 		$color = "000000";
 		foreach($biomecolors as $cline => $c){
@@ -204,7 +203,6 @@ if(in_array("biomes", $toppings, true) !== false){
 			$color = $c[1];
 		}
 		$biomes[$variables[$d[1]]] = array(
-			"id" => $cnt++,
 			"name" => $variables[$d[1]],
 			"color" => hexdec($color),
 		);
