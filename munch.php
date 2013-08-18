@@ -146,6 +146,8 @@ if(in_array("packetinstructions", $toppings, true) !== false and in_array("packe
 	$toppings[] = "packets";
 }
 
+info("[*] Toppings selected: ".implode(",", $toppings));
+
 
 if(in_array("version", $toppings, true) !== false){
 	//get version directly, for older versions
@@ -192,6 +194,7 @@ if(in_array("biomes", $toppings, true) !== false){
 	$biomenames = findPREG($classindex["Biome::initBiomes"], '/LDR R1, =\(([A-Za-z0-9_]*) \-/', true);
 	$biomecolors = findPREG($classindex["Biome::initBiomes"], '/LDR R1, =(0x[A-F0-9]*)/', true);
 	$biomes = array();
+	$cnt = 0;
 	foreach($biomenames as $line => $d){
 		$color = "000000";
 		foreach($biomecolors as $cline => $c){
@@ -201,6 +204,7 @@ if(in_array("biomes", $toppings, true) !== false){
 			$color = $c[1];
 		}
 		$biomes[$variables[$d[1]]] = array(
+			"id" => $cnt++,
 			"name" => $variables[$d[1]],
 			"color" => hexdec($color),
 		);
@@ -237,15 +241,13 @@ if(in_array("blocks", $toppings, true) !== false){
 		35 => array(0, 4),
 	);
 	info("[*] Getting blocks...", "");
-	$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD R1, PC ; "([A-Za-z]*)"/', true);
+	//$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD R1, PC ; "([A-Za-z]*)"/', true);
+	$blocknames = findPREG($classindex["Tile::initTiles"], '/LDR R3, \[R4,R3\] ; Tile::([A-Za-z]*)/', true);
 	$blockstrings = findPREG($classindex["Tile::initTiles"], '/LDR R1, =\(([A-Za-z0-9_]*) \-/', true);
 	$blockids = findPREG($classindex["Tile::initTiles"], '/(MOVS|MOV\.W) R1, #([xA-F0-9]*)/', true);
-	$blockclasses = findPREG($classindex["Tile::initTiles"], '/BL [a-zA-Z0-9_]* ; (.*|)Tile::(.*|)Tile\(/', true);
+	$blockhardness = findPREG($classindex["Tile::initTiles"], '/(LDR|MOV\.W) R1, (#|=)([xA-F0-9]{5,})/', true);
+	$blockclasses = findPREG($classindex["Tile::initTiles"], '/BL [a-zA-Z0-9_]* ; (.*|)Tile(.*|)::(.*|)Tile(.*|)\(/', true);
 	$blocks = array();
-	ksort($blocknames);
-	ksort($blockids);
-	ksort($blockclasses);
-	ksort($blockstrings);
 	foreach($blocknames as $line => $d){
 		foreach($blockclasses as $cline => $c){
 			if($cline > $line){
@@ -259,17 +261,35 @@ if(in_array("blocks", $toppings, true) !== false){
 			}
 			$id = hexdec(str_replace("0x", "", $i[2]));
 		}
+		$hardness = "\x00\x00\x00\x00";
+		foreach($blockhardness as $hline => $h){
+			if($hline > $line){
+				break;
+			}elseif($hline > $classl){
+				$hardness = hex2bin(str_pad(str_replace("0x", "", $h[3]), 8, "0", STR_PAD_LEFT));
+				if($h[1] === "MOV.W"){
+					break;
+				}
+			}
+		}
+		$string = "";
 		foreach($blockstrings as $sline => $s){
 			if($sline > $line){
 				break;
+			}elseif($sline > $classl){
+				$string = $variables[$s[1]];
 			}
-			$string = $variables[$s[1]];
 		}
+		if($string === ""){
+			$string = $d[1];
+		}
+		list(,$hardness) = pack("d", 1) === "\77\360\0\0\0\0\0\0" ? unpack("f", $hardness):unpack("f", strrev($hardness));
 		if(!isset($blocks[$id])){
 			$blocks[$id] = array(
 				"name" => $d[1],
 				"id" => $id,
 				"display_name" => $string,
+				"hardness" => round($hardness, 2),
 			);
 			if(isset($btextures[$id])){
 				$blocks[$id]["texture"] = array("x" => $btextures[$id][0], "y" => $btextures[$id][1]);
@@ -417,8 +437,6 @@ if(in_array("packets", $toppings, true) !== false){
 	}
 
 }
-
-info("[*] Toppings selected: ".implode(",", $toppings));
 
 $data = array();
 
