@@ -217,9 +217,12 @@ if(in_array("blocks", $toppings, true) !== false){
 		3 => array(2, 0),
 		4 => array(0, 1),
 		5 => array(4, 0),
-		
+		6 => array(15, 0),
 		7 => array(1, 1),
-		
+		8 => array(15, 12),
+		9 => array(15, 12),
+		10 => array(15, 14),
+		11 => array(15, 14),
 		12 => array(2, 1),
 		13 => array(3, 1),
 		14 => array(0, 2),
@@ -236,7 +239,21 @@ if(in_array("blocks", $toppings, true) !== false){
 		26 => array(7, 9),
 		
 		30 => array(11, 0),
+		31 => array(7, 2),
 		35 => array(0, 4),
+		37 => array(13, 0),
+		38 => array(12, 0),
+		39 => array(13, 1),
+		40 => array(12, 1),
+		41 => array(7, 1),
+		42 => array(6, 1),
+		43 => array(5, 0),
+		44 => array(6, 0),
+		45 => array(7, 0),
+		46 => array(8, 0),
+		47 => array(3, 2),
+		48 => array(4, 2),
+		49 => array(5, 2),
 	);
 	info("[*] Getting blocks...", "");
 	//$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD R1, PC ; "([A-Za-z]*)"/', true);
