@@ -408,6 +408,9 @@ if(in_array("packets", $toppings, true) !== false){
 					case "pack":
 						$f = "Metadata";
 						break;
+					case "writenamedtag":
+						$f = "NamedTag";
+						break;
 					case "writeiteminstance":
 						$f = "Item";
 						break;
@@ -483,7 +486,7 @@ if(in_array("packets", $toppings, true) !== false){
 			$next = false;
 			foreach($packet[3] as $instruction){
 				if($instruction[0] === 0){
-					if(substr($instruction[1], 0, 4) === "bits" or $instruction[1] === "Metadata" or $instruction[1] === "Item"){
+					if(substr($instruction[1], 0, 4) === "bits" or $instruction[1] === "Metadata" or $instruction[1] === "NamedTag" or $instruction[1] === "Item"){
 						$instructions = array(
 							"field" => $instruction[1]."(".chr(0x61 + $cnt).")".($next !== false ? ".".$next:""),
 							"operation" => "write",
