@@ -1,7 +1,8 @@
 <?php
 
-$params = getopt("e:o:lt:", array(
+$params = getopt("e:c:o:lt:", array(
 	"extract:",
+	"compare:",
 	"output:",
 	"list",
 	"toppings:"
