@@ -17,7 +17,7 @@
 		
 	}
 
-function parser($asmfile){
+function parser($asmfile, array $toppings){
 	if(!file_exists($asmfile) or strtolower(substr($asmfile, -4)) !== ".asm"){
 		echo "Invalid ASM provided $asmfile".PHP_EOL;
 		exit(-1);
@@ -43,7 +43,7 @@ function parser($asmfile){
 			}
 		}else{
 			$header[] = $asm[$line];
-			if($asm[$line] === "; ==========================================================================="){
+			if($asm[$line] === "; ===========================================================================" or strpos($asm[$line], "AREA .text, CODE") !== false){
 				unset($asm[$line]);
 				break;
 			}
@@ -69,6 +69,23 @@ function parser($asmfile){
 		}elseif($fn === false){
 			if($l === "; =============== S U B R O U T I N E ======================================="){
 				$fn = true;
+			}elseif($l !== "" and preg_match('#^; ([A-Za-z0-9_\:\~]{1,})\(([A-Za-z0-9_\:\~, \*\&]*)\)#', $l, $matches) > 0){
+				$method = explode("::", $matches[1]);
+				$class = array_shift($method);
+				$method = implode("::", $method);
+				$fn = array($class, $method, $matches[2]);
+				if(!isset($classes[$class])){
+					$classes[$class] = array(
+						$method => array(),
+					);
+				}elseif(!isset($classes[$class][$method])){
+					$classes[$class][$method] = array();
+				}
+				$classes[$class][$method][$matches[2]] = array(
+					0 => $matches[1], //fn
+					1 => $matches[2], //Params
+					2 => array(), //Instructions
+				);
 			}
 		}else{
 			if($fn === true){
@@ -109,19 +126,6 @@ function parser($asmfile){
 
 	info(PHP_EOL. "[+] done!");
 	unset($asm);
-
-
-	if(($topp = getp("t", "toppings")) !== null){
-		$toppings = explode(",", strtolower(str_replace(" ", "", $topp)));
-	}else{
-		$toppings = array("version", "packets", "packetinstructions", "biomes", "blocks", "sounds");
-	}
-
-	if(in_array("packetinstructions", $toppings, true) !== false and in_array("packets", $toppings, true) === false){
-		$toppings[] = "packets";
-	}
-
-	info("[*] Toppings selected: ".implode(",", $toppings));
 
 
 	if(in_array("version", $toppings, true) !== false){

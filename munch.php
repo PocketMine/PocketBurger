@@ -23,12 +23,24 @@ if(getp("l", "list") !== null){
 	die();
 }
 
+if(($topp = getp("t", "toppings")) !== null){
+	$toppings = explode(",", strtolower(str_replace(" ", "", $topp)));
+}else{
+	$toppings = array("version", "packets", "packetinstructions", "biomes", "blocks", "sounds");
+}
+
+if(in_array("packetinstructions", $toppings, true) !== false and in_array("packets", $toppings, true) === false){
+	$toppings[] = "packets";
+}
+
+info("[*] Toppings selected: ".implode(",", $toppings));
+
 include("src/parser.php");
 $output = array();
-$output[] = parser(array_pop($argv));
+$output[] = parser(array_pop($argv), $toppings);
 
 if(getp("c", "compare") !== null){
-	$output[] = parser(getp("c", "compare"));
+	$output[] = parser(getp("c", "compare"), $toppings);
 }
 
 $output = json_encode($output, JSON_PRETTY_PRINT);
