@@ -12,6 +12,7 @@ $toppings = array(
 	"biomes" => "Gets most biome types.",
 	"blocks" => "Gets most available block types.",
 	"sounds" => "Finds all named sound effects.",
+	"methods" => "Finds most method names."
 );
 
 if(getp("l", "list") !== null){

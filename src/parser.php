@@ -127,7 +127,6 @@ function parser($asmfile, array $toppings){
 	info(PHP_EOL. "[+] done!");
 	unset($asm);
 
-
 	if(in_array("version", $toppings, true) !== false){
 		//get version directly, for older versions
 		$version = "";
@@ -302,12 +301,12 @@ function parser($asmfile, array $toppings){
 		$clientSide = array();
 		foreach($classindex["ServerSideNetworkHandler::handle"] as $parameters => $class){
 			if(preg_match("#, ([A-Za-z_]*)#", $parameters, $matches) > 0){
-				$serverSide[$matches[1]] = true;
+				$clientSide[$matches[1]] = true;
 			}
 		}
 		foreach($classindex["ClientSideNetworkHandler::handle"] as $parameters => $class){
 			if(preg_match("#, ([A-Za-z_]*)#", $parameters, $matches) > 0){
-				$clientSide[$matches[1]] = true;
+				$serverSide[$matches[1]] = true;
 			}
 		}
 		$networkFunctions = array();
@@ -435,8 +434,18 @@ function parser($asmfile, array $toppings){
 		}
 
 	}
-
+	
 	$data = array();
+	
+	if(in_array("methods", $toppings, true) !== false){
+		$data["methods"] = array();
+		info("[*] Getting methods... found ".count($classindex));
+		foreach($classindex as $class => $d){
+			$data["methods"][] = $class;
+		}
+	}
+
+	
 
 	if(in_array("version", $toppings, true) !== false){
 		$data["version"] = array(
