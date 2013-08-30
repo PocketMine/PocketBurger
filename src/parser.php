@@ -310,7 +310,6 @@ function parser($asmfile, array $toppings){
 				$clientSide[$matches[1]] = true;
 			}
 		}
-
 		$networkFunctions = array();
 		foreach($classindex as $class => $fn){
 			$n = explode("::", $class);
