@@ -139,10 +139,14 @@ function parser($asmfile, array $toppings){
 		}
 		if(trim($version) == ""){ //Different methods to get version
 			// 0.7.3+ compatible method
-			$vVars = findPREG($classindex["Common::getGameVersionString"], '#MOVS R[0-9], \#([0-9]{1})#');
-			if(!isset($vVars[2])){ //0.6.1+ method 
-				$vVars = findPREG($classindex["Common::getGameVersionString"], '#ADD R[0-9], PC ; "([ a-zA-Z0-9\.]*)"#');
-				$version = $vVars[0][1];
+			$vVars = findPREG($classindex["Common::getGameVersionString"], '#MOVS R[0-9], \#([0-9]{1})$#');
+			if(!isset($vVars[2])){ //0.6.1+ method / 0.8.0+ method
+				$vVars2 = findPREG($classindex["Common::getGameVersionString"], '#ADD R[0-9], PC ; "([ a-zA-Z0-9\.]*)"$#');
+				$version = $vVars2[0][1];
+				if(isset($classindex["Common::getGameVersionStringNet"])){ //0.8.0+ method
+					$vVars3 = findPREG($classindex["Common::getGameVersionStringNet"], '#MOVS R[0-9], \#([0-9]{1})$#');					
+					$version = $vVars2[0][1].$vVars[0][1].".".$vVars3[2][1].".".$vVars3[0][1].$vVars2[1][1].(isset($vVars2[2][1]) ? $vVars2[2][1].$vVars[1][1]:"");					
+				}
 			}else{
 				$version = "v".$vVars[0][1].".".@intval($vVars[2][1]).".".$vVars[1][1];
 			}
