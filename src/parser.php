@@ -252,7 +252,10 @@ function parser($asmfile, array $toppings){
 					break;
 				}
 				$classl = $cline;
-			}		
+			}
+			if(!isset($classl)){
+				continue;
+			}
 			foreach($blockids as $iline => $i){
 				if($iline > $classl){
 					break;
@@ -275,7 +278,11 @@ function parser($asmfile, array $toppings){
 				if($sline > $line){
 					break;
 				}elseif($sline > $classl){
-					$string = $variables[$s[1]];
+					if(!isset($variables[$s[1]])){
+						$string = "Unknown";
+					}else{
+						$string = $variables[$s[1]];
+					}
 				}
 			}
 			if($string === ""){
