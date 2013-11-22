@@ -236,7 +236,7 @@ function parser($asmfile, array $toppings){
 		);
 		info("[*] Getting blocks...", "");
 		//$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD R1, PC ; "([A-Za-z]*)"/', true);
-		$blocknames = findPREG($classindex["Tile::initTiles"], '/LDR R3, \[R4,R3\] ; Tile::([A-Za-z]*)/', true);
+		$blocknames = findPREG($classindex["Tile::initTiles"], '/LDR R3, \[R[46],R3\] ; Tile::([A-Za-z]*)/', true);
 		$blockstrings = findPREG($classindex["Tile::initTiles"], '/LDR R1, =\(([A-Za-z0-9_]*) \-/', true);
 		$blockids = findPREG($classindex["Tile::initTiles"], '/(MOVS|MOV\.W) R1, #([xA-F0-9]*)/', true);
 		$blockhardness = findPREG($classindex["Tile::initTiles"], '/(LDR|MOV\.W) R1, (#|=)([xA-F0-9]{5,})/', true);
