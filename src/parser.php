@@ -50,6 +50,7 @@ function parser($asmfile, array $toppings){
 		}
 		unset($asm[$line]);
 	}
+	++$line;
 
 	$classindex = array();
 	$classes = array();
@@ -89,7 +90,7 @@ function parser($asmfile, array $toppings){
 			}
 		}else{
 			if($fn === true){
-				if($l !== "" and preg_match('#^; ([A-Za-z0-9_\:\~]{1,})\(([A-Za-z0-9_\:\~, \*\&]*)\)#', $l, $matches) > 0){
+				if($l !== "" and preg_match('#^; ([A-Za-z0-9_\:\~]{1,})\(([A-Za-z0-9_\:\~, \*\&\<\>]*)\)#', $l, $matches) > 0){
 					$method = explode("::", $matches[1]);
 					$class = array_shift($method);
 					$method = implode("::", $method);
@@ -106,7 +107,7 @@ function parser($asmfile, array $toppings){
 						1 => $matches[2], //Params
 						2 => array(), //Instructions
 					);
-				}elseif($ln != ""){
+				}elseif($l != ""){
 					$fn = false;
 				}
 			}else{
