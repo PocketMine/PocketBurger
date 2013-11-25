@@ -195,50 +195,38 @@ function parser($asmfile, array $toppings){
 	
 	if(in_array("items", $toppings, true) !== false){
 		info("[*] Getting items...", "");
-		$itemnames = findPREG($classindex["Item::initItems"], '/LDR R3, \[R[46],R3\] ; Item::([A-Za-z_]*)/', true);
-		$itemstrings = findPREG($classindex["Item::initItems"], '/LDR\.W R11, =\(([A-Za-z0-9_]*) \-/', true);
-		$itemids = findPREG($classindex["Item::initItems"], '/(MOVS|MOV\.W) R1, #([xA-F0-9]*)/', true);
-		$itemclasses = findPREG($classindex["Item::initItems"], '/BL [a-zA-Z0-9_]* ; ([A-Za-z0-9_]*)::\g{1}\(int/', true);
+		$itemstrings = findPREG($classindex["Item::initItems"], '/(LDR|LDR\.W) R[1-9]{1,2}, =\((a[A-Za-z0-9_]{1,}) \-/', true);
+		
+		$itemlocation = findPREG($classindex["Item::initItems"], '/BLX [a-zA-Z0-9_]* ; operator new\(u?int\)/', true);
+		$itemids = findPREG($classindex["Item::initItems"], '/(MOVS|MOV\.W) R1, #([xA-F0-9]{1,})/', true);
 		$items = array();
-		foreach($itemnames as $line => $d){
-			if($d[1] === "Tier"){
-				unset($itemnames[$line]);
+
+		foreach($itemlocation as $line => $d){
+			if(!isset($itemids[$line + 1])){
 				continue;
 			}
-			foreach($itemclasses as $cline => $c){
-				if($cline > $line){
-					break;
-				}
-				$classl = $cline;
-			}
-			if(!isset($classl)){
-				continue;
-			}
-			foreach($itemids as $iline => $i){
-				if($iline > $classl){
-					break;
-				}
-				$id = hexdec(str_replace("0x", "", $i[2]));
-			}
+			$id = hexdec(str_replace("0x", "", $itemids[$line + 1][2]));
+
 			$string = "";
 			foreach($itemstrings as $sline => $s){
-				if($sline > $line){
-					break;
-				}elseif($sline > $classl){
-					if(!isset($variables[$s[1]])){
+				if($sline < $line){
+					continue;
+				}elseif($sline > $line){
+					if(!isset($variables[$s[2]])){
 						$string = "Unknown";
 					}else{
-						$string = $variables[$s[1]];
+						$string = $variables[$s[2]];
 					}
+					break;
 				}
 			}
 			if($string === ""){
-				$string = $d[1];
+				$string = "Unknown";
 			}
 			$id += 256;
 			if(!isset($items[$id])){
 				$items[$id] = array(
-					"name" => $d[1],
+					"name" => $string,
 					"id" => $id,
 					"display_name" => $string,
 				);
@@ -296,15 +284,19 @@ function parser($asmfile, array $toppings){
 		);
 		info("[*] Getting blocks...", "");
 		//$blocknames = findPREG($classindex["Tile::initTiles"], '/ADD R1, PC ; "([A-Za-z]*)"/', true);
-		$blocknames = findPREG($classindex["Tile::initTiles"], '/LDR R3, \[R[46],R3\] ; Tile::([A-Za-z]*)/', true);
-		$blockstrings = findPREG($classindex["Tile::initTiles"], '/LDR R1, =\(([A-Za-z0-9_]*) \-/', true);
-		$blockids = findPREG($classindex["Tile::initTiles"], '/(MOVS|MOV\.W) R1, #([xA-F0-9]*)/', true);
+		$blocknames = findPREG($classindex["Tile::initTiles"], '/LDR R3, \[R[46],R3\] ; Tile::([A-Za-z]{1,})/', true);
+		$blockstrings = findPREG($classindex["Tile::initTiles"], '/LDR R1, =\((a[A-Za-z0-9_]{1,}) \-/', true);
+		$blockids = findPREG($classindex["Tile::initTiles"], '/(MOVS|MOV\.W) R1, #([xA-F0-9]{1,})/', true);
 		$blockhardness = findPREG($classindex["Tile::initTiles"], '/(LDR|MOV\.W) R1, (#|=)([xA-F0-9]{5,})/', true);
-		$blockclasses = findPREG($classindex["Tile::initTiles"], '/BL [a-zA-Z0-9_]* ; ([A-Za-z0-9_]*)::\g{1}\(int/', true);
+		$blockclasses = findPREG($classindex["Tile::initTiles"], '/BL [a-zA-Z0-9_]* ; ([A-Za-z0-9_]{1,})::\g{1}\(int/', true);
 		$blocks = array();
 		foreach($blocknames as $line => $d){
+			unset($classl);
 			foreach($blockclasses as $cline => $c){
 				if($cline > $line){
+					if(isset($classl)){
+						unset($blockclasses[$classl]);
+					}
 					break;
 				}
 				$classl = $cline;
