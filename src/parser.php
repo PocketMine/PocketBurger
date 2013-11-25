@@ -192,6 +192,62 @@ function parser($asmfile, array $toppings){
 		}
 		info(" found ".count($biomes));
 	}
+	
+	if(in_array("items", $toppings, true) !== false){
+		info("[*] Getting items...", "");
+		$itemnames = findPREG($classindex["Item::initItems"], '/LDR R3, \[R[46],R3\] ; Item::([A-Za-z_]*)/', true);
+		$itemstrings = findPREG($classindex["Item::initItems"], '/LDR\.W R11, =\(([A-Za-z0-9_]*) \-/', true);
+		$itemids = findPREG($classindex["Item::initItems"], '/(MOVS|MOV\.W) R1, #([xA-F0-9]*)/', true);
+		$itemclasses = findPREG($classindex["Item::initItems"], '/BL [a-zA-Z0-9_]* ; ([A-Za-z0-9_]*)::\g{1}\(int/', true);
+		$items = array();
+		foreach($itemnames as $line => $d){
+			if($d[1] === "Tier"){
+				unset($itemnames[$line]);
+				continue;
+			}
+			foreach($itemclasses as $cline => $c){
+				if($cline > $line){
+					break;
+				}
+				$classl = $cline;
+			}
+			if(!isset($classl)){
+				continue;
+			}
+			foreach($itemids as $iline => $i){
+				if($iline > $classl){
+					break;
+				}
+				$id = hexdec(str_replace("0x", "", $i[2]));
+			}
+			$string = "";
+			foreach($itemstrings as $sline => $s){
+				if($sline > $line){
+					break;
+				}elseif($sline > $classl){
+					if(!isset($variables[$s[1]])){
+						$string = "Unknown";
+					}else{
+						$string = $variables[$s[1]];
+					}
+				}
+			}
+			if($string === ""){
+				$string = $d[1];
+			}
+			$id += 256;
+			if(!isset($items[$id])){
+				$items[$id] = array(
+					"name" => $d[1],
+					"id" => $id,
+					"display_name" => $string,
+				);
+			}else{
+				info(" !".$id.":".$d[1]."[".$string."]", "");
+			}
+		}
+		info(" found ".count($items));
+	}
 
 	if(in_array("blocks", $toppings, true) !== false){
 		$btextures = array(
@@ -526,7 +582,15 @@ function parser($asmfile, array $toppings){
 		$data["sounds"] = $sounds;
 	}
 
-
+	if(in_array("items", $toppings, true) !== false){
+		$data["items"] = array(
+			"info" => array(
+				"count" => count($items),
+				"real_count" => count($items),
+			),
+			"item" => $items,
+		);
+	}
 
 	if(in_array("blocks", $toppings, true) !== false){
 		$data["blocks"] = array(

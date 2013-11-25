@@ -10,7 +10,8 @@ $toppings = array(
 	"packets" => "Provides minimal information on all network packets.",
 	"packetinstructions" => "Provides the instructions used to construct network packets.",
 	"biomes" => "Gets most biome types.",
-	"blocks" => "Gets most available block types.",
+	"blocks" => "Gets most available blocks.",
+	"items" => "Gets most available items.",
 	"sounds" => "Finds all named sound effects.",
 	"methods" => "Finds most method names."
 );
@@ -27,7 +28,7 @@ if(getp("l", "list") !== null){
 if(($topp = getp("t", "toppings")) !== null){
 	$toppings = explode(",", strtolower(str_replace(" ", "", $topp)));
 }else{
-	$toppings = array("version", "packets", "packetinstructions", "biomes", "blocks", "sounds");
+	$toppings = array("version", "packets", "packetinstructions", "biomes", "blocks", "items", "sounds");
 }
 
 if(in_array("packetinstructions", $toppings, true) !== false and in_array("packets", $toppings, true) === false){
